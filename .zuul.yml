@@ -1,0 +1,8 @@
+ui: mocha-qunit
+browsers:
+  - name: chrome
+    version: latest
+  - name: safari
+    version: latest
+scripts:
+  - "bind.js"
