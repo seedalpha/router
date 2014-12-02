@@ -4,6 +4,13 @@ hash-based url router for browser
 
 ### Changelog
 
+`1.1.0`:
+
+- Add anonymous callbacks as '/'
+- Nest routers
+- Toggle listening on `hashchange`
+- Test coverage & scripts
+
 `1.0.0`:
 
 - Initial release
@@ -23,9 +30,18 @@ hash-based url router for browser
       // { scope: 'short' }
     });
     
+    var router2 = new Router();
+    
+    router2.add('/publish', function(params, query) {
+      // { id: '123' }
+    });
+    
+    router.add('/posts/:id/, router2);
+    
     router.start();
     
     router.set('#/posts/123?scope=short');
+    router.set('#/posts/123/publish');
     
 ### Development
 

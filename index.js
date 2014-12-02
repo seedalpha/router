@@ -7,10 +7,10 @@
  * Module dependencies
  */
 
-var pathRegex = require('path-to-regexp');
-var qs        = require('seed-qs');
-var EventEmitter = require('events').EventEmitter;
-var util      = require('util');
+var pathRegex     = require('path-to-regexp');
+var qs            = require('seed-qs');
+var EventEmitter  = require('events').EventEmitter;
+var util          = require('util');
 
 
 /**
@@ -24,10 +24,7 @@ function Router() {
   
   EventEmitter.call(this);
   
-  this.routes = [];
-  
-  window.addEventListener('hashchange', 
-    this._onHashChanged.bind(this), false);
+  this.routes = [];  
 }
 
 util.inherits(Router, EventEmitter);
@@ -47,7 +44,7 @@ Router.prototype._onHashChanged = function() {
   var parts = hash.split('?');
   hash = parts.shift();
   var query = qs.parse(parts.join('?'));
-  
+    
   this.routes.some(function(route) {
     if (!route.exp.test(hash)) return;
     var result = route.exp.exec(hash);
@@ -72,12 +69,38 @@ Router.prototype._onHashChanged = function() {
  */
 
 Router.prototype.add = function(uri, fn) {
-  var keys = [];
-  this.routes.push({
-    exp: pathRegex(uri, keys),
-    keys: keys,
-    callback: fn
-  });
+  
+  if (!fn) {
+    fn = uri;
+    uri = '/';
+  }
+  
+  if (fn instanceof Router) {
+    fn.routes.forEach(function(route) {
+      var keys = [], url;
+      
+      if (uri !== '/') {
+        url = uri + route.uri;
+      } else {
+        url = route.uri;
+      }
+      
+      this.routes.push({
+        uri: url,
+        exp: pathRegex(url, keys),
+        keys: keys,
+        callback: route.callback
+      });
+    }.bind(this));
+  } else {
+    var keys = [];
+    this.routes.push({
+      uri: uri,
+      exp: pathRegex(uri, keys),
+      keys: keys,
+      callback: fn
+    });
+  }
   return this;
 }
 
@@ -105,7 +128,18 @@ Router.prototype.set = function(uri) {
  */
 
 Router.prototype.start = function() {
-  this._onHashChanged();
+  this._listener = this._listener || this._onHashChanged.bind(this);
+  window.addEventListener('hashchange', this._listener, false);
+  this._listener();
+}
+
+
+/**
+ * Suspend operation
+ */
+
+Router.prototype.stop = function() {
+  window.removeEventListener('hashchange', this._listener);
 }
 
 
