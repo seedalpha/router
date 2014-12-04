@@ -1,6 +1,6 @@
 {
   "name": "seed-router",
-  "version": "2.0.3",
+  "version": "2.0.4",
   "description": "Connect middleware-inspired router for node and browser",
   "main": "index.js",
   "scripts": {

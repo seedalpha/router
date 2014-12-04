@@ -6,6 +6,10 @@ Connect middleware-inspired router for node and browser
 
 ### Changelog
 
+`2.0.4`:
+
+- Update ci config
+
 `2.0.3`:
 
 - Fix missing deps & ci config

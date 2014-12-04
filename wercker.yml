@@ -2,10 +2,13 @@ box: wercker/nodejs
 build:
   steps:
     - script:
-        name: update registry config
+        name: install and test
         code: |-
-          echo "$NPM_CONFIG" > .npmrc
-          cat .npmrc
+          npm set registry http://npm.sandbox.elasticseed.net
+          npm set always-auth true
+          echo "$NPM_AUTH" >> .npmrc
+          echo "$NPM_EMAIL" >> .npmrc
           npm install
-          echo "$ZUUL_CONFIG" > ~/.zuulrc
+          echo "$ZUUL_USER" >> ~/.zuulrc
+          echo "$ZUUL_KEY" >> ~/.zuulrc
           npm test
