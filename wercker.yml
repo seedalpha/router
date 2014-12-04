@@ -2,10 +2,10 @@ box: wercker/nodejs
 build:
   steps:
     - script:
-      name: update registry config
-      code: echo $NPM_CONFIG > ~/.npmrc
+        name: update registry config
+        code: echo $NPM_CONFIG > ~/.npmrc
     - npm-install
     - script:
-      name: setup zuul test
-      code: echo $ZUUL_CONFIG > ~/.zuulrc
+        name: setup zuul test
+        code: echo $ZUUL_CONFIG > ~/.zuulrc
     - npm-test

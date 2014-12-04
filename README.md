@@ -6,6 +6,10 @@ Connect middleware-inspired router for node and browser
 
 ### Changelog
 
+`2.0.2`:
+
+- Fix CI config
+
 `2.0.1`:
 
 - CI integration & badge
