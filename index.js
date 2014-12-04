@@ -9,7 +9,7 @@
 
 var pathRegex     = require('path-to-regexp');
 var qs            = require('seed-qs');
-var Queue         = require('queue');
+var Queue         = require('seed-queue');
 
 
 /**

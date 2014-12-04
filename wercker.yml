@@ -3,9 +3,9 @@ build:
   steps:
     - script:
         name: update registry config
-        code: echo $NPM_CONFIG > ~/.npmrc
-    - npm-install
-    - script:
-        name: setup zuul test
-        code: echo $ZUUL_CONFIG > ~/.zuulrc
-    - npm-test
+        code: |-
+          echo "$NPM_CONFIG" > .npmrc
+          cat .npmrc
+          npm install
+          echo "$ZUUL_CONFIG" > ~/.zuulrc
+          npm test

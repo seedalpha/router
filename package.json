@@ -1,6 +1,6 @@
 {
   "name": "seed-router",
-  "version": "2.0.2",
+  "version": "2.0.3",
   "description": "Connect middleware-inspired router for node and browser",
   "main": "index.js",
   "scripts": {
@@ -30,7 +30,7 @@
   },
   "dependencies": {
     "path-to-regexp": "^1.0.1",
-    "queue": "git://github.com/seedalpha/queue",
+    "seed-queue": "2.0.0",
     "seed-qs": "^1.0.1"
   }
 }
