@@ -1,8 +1,16 @@
 # router
 
+[![wercker status](https://app.wercker.com/status/e766b9feebfeecff98a41bce0027b60b/m "wercker status")](https://app.wercker.com/project/bykey/e766b9feebfeecff98a41bce0027b60b)
+
 Connect middleware-inspired router for node and browser
 
 ### Changelog
+
+`2.0.1`:
+
+- CI integration & badge
+- Rename test scripts
+- Prerequisites & dev docs
 
 `2.0.0`:
 
@@ -14,6 +22,13 @@ Connect middleware-inspired router for node and browser
 `1.0.0`:
 
 - Initial release
+
+
+### Prerequisites
+
+    $ npm set registry http://npm.sandbox.elasticseed.net
+    $ npm set always-auth true
+    $ npm login
 
 ### Installation
 
@@ -51,6 +66,8 @@ Connect middleware-inspired router for node and browser
 
     $ git clone git@github.com:seedalpha/router.git
     $ cd router
+    $ echo $NPM_CONFIG > .npmrc
+    $ echo $ZUUL_CONFIG > ~/.zuulrc
     $ npm install
     $ npm test
 

@@ -1,11 +1,11 @@
 {
   "name": "seed-router",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "description": "Connect middleware-inspired router for node and browser",
   "main": "index.js",
   "scripts": {
-    "test": "zuul --phantom -- test.js",
-    "fulltest": "zuul -- test.js",
+    "shorttest": "zuul --phantom -- test.js",
+    "test": "zuul -- test.js",
     "precommit": "npm test",
     "prepublish": "npm test"
   },
