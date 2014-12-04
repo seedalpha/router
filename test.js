@@ -10,84 +10,205 @@ test('should create an instance of Router', function() {
 
 test('should add a new route handle', function() {
   var router = new Router();
-  router.add('/hello', function(params, query) {});
+  router.add('/hello', function(ctx) {});
   assert.equal(router.routes.length, 1);
 });
 
 test('should trigger route', function(done) {
   var router = new Router();
-  router.add('/abc', function() {
-    router.stop();
+  var trigger = false;
+  
+  router.add('/abc', function(ctx) {
+    trigger = true;
+    ctx.next();
+  });
+  
+  router.set('/abc', function() {
+    assert(trigger);
     done();
   });
-  router.start();
-  setTimeout(function() {
-    router.set(window.location.href + 'abc');
-  }, 0);
 });
 
 test('should get route params', function(done) {
   var router = new Router();
-  router.add('/abcpost/:id', function(params) {
-    assert.equal(params.id, '123');
-    router.stop();
+  router.add('/abc/:id', function(ctx) {
+    assert.equal(ctx.params.id, '123');
     done();
   });
-  router.start();
-  setTimeout(function() {
-    router.set(window.location.href + 'post/123');
-  }, 0);
+  router.set('/abc/123');
+});
+
+test('should get route query', function(done) {
+  var router = new Router();
+  router.add('/abc/:id', function(ctx) {
+    assert.equal(ctx.params.id, '123');
+    assert.equal(ctx.query.hello, 123);
+    done();
+  });
+  router.set('/abc/123?hello=123');
 });
 
 test('should handle empty uri', function(done) {
   var router = new Router();
-  router.add(function(params) {
-    router.stop();
+  router.add(function(ctx) {
+    ctx.next();
+  });
+  router.set('/', done);
+});
+
+test('should handle middleware', function(done) {
+  var router = new Router();
+  var trigger = 0;
+  router.add(function(ctx) {
+    trigger++;
+    ctx.next();
+  });
+  router.add(function(ctx) {
+    trigger++;
+    ctx.next();
+  });
+  router.add(function(ctx) {
+    trigger++;
+    ctx.next();
+  });
+  router.set('/', function() {
+    assert.equal(trigger, 3);
     done();
   });
-  router.start();
-  setTimeout(function() {
-    router.set('/');
-  }, 0);
+});
+
+test('should handle inline middleware', function(done) {
+  var router = new Router();
+  var trigger = 0;
+  
+  var middleware = function(ctx) {
+    trigger++;
+    ctx.next();
+  };
+  
+  router.add(middleware, middleware, middleware);
+  
+  router.set('/', function() {
+    assert.equal(trigger, 3);
+    done();
+  });
+});
+
+test('should handle middleware execution stop on result', function(done) {
+  var router = new Router();
+  var trigger = 0;
+  router.add(function(ctx) {
+    trigger++;
+    ctx.next();
+  });
+  router.add(function(ctx) {
+    trigger++;
+    ctx.result(555);
+  });
+  router.add(function(ctx) {
+    trigger++;
+    ctx.next();
+  });
+  router.set('/', function(err, result) {
+    assert(!err);
+    assert.equal(trigger, 2);
+    assert.equal(result, 555);
+    done();
+  });
+});
+
+test('should handle middleware execution stop on error', function(done) {
+  var router = new Router();
+  var trigger = 0;
+  router.add(function(ctx) {
+    trigger++;
+    ctx.next();
+  });
+  router.add(function(ctx) {
+    trigger++;
+    ctx.error('Middleware Error');
+  });
+  router.add(function(ctx) {
+    trigger++;
+    ctx.next();
+  });
+  router.set('/', function(err, result) {
+    assert.equal(trigger, 2);
+    assert(!result);
+    assert.equal(err, 'Middleware Error');
+    done();
+  });
 });
 
 test('should handle nested routers', function(done) {
-  
+
   var router = new Router();
-  var router2 = new Router();
+  var nested = new Router();
+  var trigger = false;
   
-  router2.add(function() {
-    router.stop();
-    done();
+  router.add('/namespace', nested);
+  
+  nested.add(function(ctx) {
+    trigger = true;
+    ctx.next();
   });
   
-  router.add('/abc', router2);
+  router.set('/namespace', function() {
+    assert(trigger);
+    done();
+  });
+});
+
+test('should bubble up errors', function(done) {
+
+  var router = new Router();
+  var nested = new Router();
   
-  router.start();
-  setTimeout(function() {
-    router.set('/abc');
-  }, 0);
+  nested.add('/:id', function(ctx) {
+    assert(ctx.params.id, '123');
+    ctx.error('Nested Error');
+  });
+  
+  router.add('/namespace', nested);
+  
+  router.set('/namespace/123', function(err, result) {
+    assert.equal(err, 'Nested Error');
+    done();
+  });
+});
+
+test('should bubble up results', function(done) {
+
+  var router = new Router();
+  var nested = new Router();
+  
+  router.add('/namespace', nested);
+  
+  nested.add('/nested/:id', function(ctx) {
+    ctx.result(ctx.params.id);
+  });
+  
+  router.set('/namespace/nested/123', function(err, result) {
+    assert(!err);
+    assert.equal(result, '123');
+    done();
+  });
 });
 
 test('should handle deeply nested routers', function(done) {
-  
+
   var router = new Router();
-  var router2 = new Router();
-  var router3 = new Router();
+  var nested = new Router();
+  var deeply = new Router();
   
-  router3.add('/3', function(params) {
-    assert.equal(params.x, 2);
-    router.stop();
-    router2.stop();
-    router3.stop();
+  router.add(nested);
+  nested.add(deeply);
+  deeply.add(function(ctx) {
+    ctx.result();
+  });
+  router.set('/', function(err, result) {
+    assert(!err);
+    assert(result);
     done();
   });
-  
-  router2.add('/:x', router3);
-  router.add('/1', router2);
-  
-  router.start();
-  setTimeout(function() {
-    router.set('/1/2/3');
-  }, 0);
 });

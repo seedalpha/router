@@ -1,5 +1,5 @@
 /**
- * Simple, frontend, hash-based router
+ * Connect middleware-inspired router for node and browser
  */
 
 
@@ -9,8 +9,7 @@
 
 var pathRegex     = require('path-to-regexp');
 var qs            = require('seed-qs');
-var EventEmitter  = require('events').EventEmitter;
-var util          = require('util');
+var Queue         = require('queue');
 
 
 /**
@@ -22,41 +21,7 @@ function Router() {
     return new Router();
   }
   
-  EventEmitter.call(this);
-  
   this.routes = [];  
-}
-
-util.inherits(Router, EventEmitter);
-
-
-/*
- * Trigger on window url hash change 
- *
- * @api private
- */
-
-Router.prototype._onHashChanged = function() {
-  var hash = window.location.hash.substring(1); 
-  if (!hash.length)  {
-    return window.location.hash = '#/';
-  }
-  var parts = hash.split('?');
-  hash = parts.shift();
-  var query = qs.parse(parts.join('?'));
-    
-  this.routes.some(function(route) {
-    if (!route.exp.test(hash)) return;
-    var result = route.exp.exec(hash);
-    var params = {};
-    route.keys.forEach(function(key, index) {
-      params[key.name] = result[index + 1];
-    });
-    route.callback(params, query);
-    return true;
-  }.bind(this));
-  
-  this.emit('route', hash, query);
 }
 
 
@@ -64,82 +29,132 @@ Router.prototype._onHashChanged = function() {
  * Add a route to catch
  *
  * @param {String} uri
- * @param {Function} fn(params, query)
+ * @param {Function} fn(ctx)
  * @return {Router} self
  */
 
 Router.prototype.add = function(uri, fn) {
   
-  if (!fn) {
-    fn = uri;
+  var args = Array.prototype.slice.call(arguments);
+  
+  var uri;
+  if (typeof args[0] === 'string') {
+    uri = args.shift();
+  } else {
     uri = '/';
   }
   
-  if (fn instanceof Router) {
-    fn.routes.forEach(function(route) {
-      var keys = [], url;
-      
-      if (uri !== '/') {
-        url = uri + route.uri;
-      } else {
-        url = route.uri;
-      }
-      
+  args.forEach(function(fn) {
+    if (fn instanceof Router) {
+      var keys = [];
       this.routes.push({
-        uri: url,
-        exp: pathRegex(url, keys),
+        uri: uri,
+        exp: pathRegex(uri, keys),
         keys: keys,
-        callback: route.callback
+        callback: function(ctx) {
+          fn.set({ 
+            hash: '/', 
+            query: ctx.query
+          }, function(error, result) {
+            if (error) return ctx.error(error);
+            if (result) return ctx.result(result);
+            ctx.next();
+          });
+        }
       });
-    }.bind(this));
-  } else {
-    var keys = [];
-    this.routes.push({
-      uri: uri,
-      exp: pathRegex(uri, keys),
-      keys: keys,
-      callback: fn
-    });
-  }
+    
+      var longUri = uri + '/:__layer*';
+      keys = [];
+      this.routes.push({
+        uri: longUri,
+        exp: pathRegex(longUri, keys),
+        keys: keys,
+        callback: function(ctx) {
+          var layer = ctx.params.__layer;
+          if (layer) {
+            layer = '/' + layer; 
+          } else {
+            layer = '/';
+          }
+          fn.set({ 
+            hash: layer, 
+            query: ctx.query
+          }, function(error, result) {
+            if (error) return ctx.error(error);
+            if (result) return ctx.result(result);
+            ctx.next();
+          });
+        }
+      });
+    } else {
+      var keys = [];
+      this.routes.push({
+        uri: uri,
+        exp: pathRegex(uri, keys),
+        keys: keys,
+        callback: fn
+      });
+    }
+  }.bind(this));
   return this;
 }
 
 
 /**
- * Set window route
+ * Set route
  *
  * @param {String} uri
+ * @param {Function} cb(error, result)
  */
 
-Router.prototype.set = function(uri) {
-  if (uri.indexOf('http') === 0) {
-    return window.location.href = uri;
+Router.prototype.set = function(uri, cb) {
+  
+  var hash, query;
+  
+  cb = cb || function(){};
+  
+  if (typeof uri === 'string') {
+    var parts = uri.split('?');
+    hash = parts.shift();
+    query = qs.parse(parts.join('?'));
+  } else {
+    hash = uri.hash;
+    query = uri.query || {};
   }
-  if (uri[0] === '#')
-    uri = uri.substring(1);
-  if (uri[0] !== '/')
-    uri = '/' + uri;
-  window.location.hash = uri;
-}
-
-
-/**
- * Trigger initial check
- */
-
-Router.prototype.start = function() {
-  this._listener = this._listener || this._onHashChanged.bind(this);
-  window.addEventListener('hashchange', this._listener, false);
-  this._listener();
-}
-
-
-/**
- * Suspend operation
- */
-
-Router.prototype.stop = function() {
-  window.removeEventListener('hashchange', this._listener);
+  
+  var q = new Queue();
+  
+  this.routes.forEach(function(route) {
+    if (!route.exp.test(hash)) return;
+    
+    var result = route.exp.exec(hash);
+    
+    var params = {};
+    
+    route.keys.forEach(function(key, index) {
+      params[key.name] = result[index + 1];
+    });
+    
+    q.add(function(next) {
+      route.callback({ 
+        params: params, 
+        query: query, 
+        next: next, 
+        error: function(err) {
+          next({ error: err });
+        }, 
+        result: function(result) {
+          next({ result: result || true });
+        }
+      });
+    });
+  });
+  
+  q.end(function(out) {
+    out = out || {};
+    if (out.error) return cb(out.error);
+    cb(null, out.result || false);
+  });
 }
 
 

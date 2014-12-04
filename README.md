@@ -1,14 +1,14 @@
 # router
 
-hash-based url router for browser
+Connect middleware-inspired router for node and browser
 
 ### Changelog
 
-`1.1.0`:
+`2.0.0`:
 
-- Add anonymous callbacks as '/'
+- Stop listening on window hash change
 - Nest routers
-- Toggle listening on `hashchange`
+- Inline middleware
 - Test coverage & scripts
 
 `1.0.0`:
@@ -25,23 +25,27 @@ hash-based url router for browser
     
     var router = new Router();
     
-    router.add('/posts/:id', function(params, query) {
-      // { id: '123' }
-      // { scope: 'short' }
+    router.add('/posts/:id', function(ctx) {
+      ctx.params // { id: '123' }
+      ctx.query  // { scope: 'short' }
     });
     
-    var router2 = new Router();
+    var nested = new Router();
     
-    router2.add('/publish', function(params, query) {
-      // { id: '123' }
+    nested.add(function(ctx) {
+      console.log('middleware');
+      ctx.next();
     });
     
-    router.add('/posts/:id/, router2);
+    nested.add('/publish', function(ctx) {
+      ctx.params // { id: '123' }
+    });
     
-    router.start();
+    router.add('/posts/:id/, nested);
     
-    router.set('#/posts/123?scope=short');
-    router.set('#/posts/123/publish');
+    router.set('#/posts/123?scope=short', function() {
+      router.set('#/posts/123/publish');
+    });
     
 ### Development
 
