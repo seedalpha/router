@@ -6,7 +6,7 @@
   "scripts": {
     "shorttest": "zuul --phantom -- test.js",
     "test": "zuul -- test.js",
-    "precommit": "npm test",
+    "precommit": "npm run shorttest",
     "prepublish": "npm test"
   },
   "repository": {
