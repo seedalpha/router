@@ -33,7 +33,8 @@ function Router() {
  * @return {Router} self
  */
 
-Router.prototype.add = function(uri, fn) {
+Router.prototype.add =
+Router.prototype.get = function(uri, fn) {
   
   var args = Array.prototype.slice.call(arguments);
   
@@ -52,13 +53,17 @@ Router.prototype.add = function(uri, fn) {
         exp: pathRegex(uri, keys),
         keys: keys,
         callback: function(ctx) {
+          var errorFn = ctx.error.bind(ctx);
+          var resultFn = ctx.result.bind(ctx);
+          var nextFn = ctx.next.bind(ctx);
           fn.set({ 
             hash: '/', 
-            query: ctx.query
+            query: ctx.query,
+            context: ctx
           }, function(error, result) {
-            if (error) return ctx.error(error);
-            if (result) return ctx.result(result);
-            ctx.next();
+            if (error) return errorFn(error);
+            if (result) return resultFn(result);
+            nextFn();
           });
         }
       });
@@ -76,13 +81,17 @@ Router.prototype.add = function(uri, fn) {
           } else {
             layer = '/';
           }
+          var errorFn = ctx.error.bind(ctx);
+          var resultFn = ctx.result.bind(ctx);
+          var nextFn = ctx.next.bind(ctx);
           fn.set({ 
             hash: layer, 
-            query: ctx.query
+            query: ctx.query,
+            context: ctx
           }, function(error, result) {
-            if (error) return ctx.error(error);
-            if (result) return ctx.result(result);
-            ctx.next();
+            if (error) return errorFn(error);
+            if (result) return resultFn(result);
+            nextFn();
           });
         }
       });
@@ -109,7 +118,7 @@ Router.prototype.add = function(uri, fn) {
 
 Router.prototype.set = function(uri, cb) {
   
-  var hash, query;
+  var hash, query, context;
   
   cb = cb || function(){};
   
@@ -117,9 +126,11 @@ Router.prototype.set = function(uri, cb) {
     var parts = uri.split('?');
     hash = parts.shift();
     query = qs.parse(parts.join('?'));
+    context = {};
   } else {
     hash = uri.hash;
     query = uri.query || {};
+    context = uri.context || {};
   }
   
   var q = new Queue();
@@ -136,17 +147,16 @@ Router.prototype.set = function(uri, cb) {
     });
     
     q.add(function(next) {
-      route.callback({ 
-        params: params, 
-        query: query, 
-        next: next, 
-        error: function(err) {
-          next({ error: err });
-        }, 
-        result: function(result) {
-          next({ result: result || true });
-        }
-      });
+      context.params = params;
+      context.query = query;
+      context.next = next;
+      context.error = function(err) {
+        next({ error: err });
+      };
+      context.result = function(result) {
+        next({ result: result || true });
+      };
+      route.callback(context);
     });
   });
   

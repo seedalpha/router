@@ -6,6 +6,10 @@ Connect middleware-inspired router for node and browser
 
 ### Changelog
 
+`2.1.0`:
+
+- Maintain a single context within a single request
+
 `2.0.4`:
 
 - Update ci config

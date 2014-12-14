@@ -212,3 +212,29 @@ test('should handle deeply nested routers', function(done) {
     done();
   });
 });
+
+test('should maintain a single context', function(done) {
+
+  var router = new Router();
+  var nested = new Router();
+  var deeply = new Router();
+  
+  router.add(function(ctx) {
+    ctx.a = true;
+    ctx.next();
+  });
+  
+  router.add(nested);
+  nested.add(deeply);
+  
+  deeply.add(function(ctx) {
+    assert(ctx.a);
+    ctx.result();
+  });
+  
+  router.set('/', function(err, result) {
+    assert(!err);
+    assert(result);
+    done();
+  });
+});
