@@ -244,3 +244,39 @@ test('should maintain a single context', function(done) {
     done();
   });
 });
+
+test('should diffirentiate handles and middleware', function(done) {
+  var router = new Router();
+  
+  // middleware
+  router.add('/', function(ctx, next) {
+    ctx.a = true;
+    next();
+  });
+  
+  // middleware
+  router.add('/', function(ctx, next) {
+    ctx.b = true;
+    next();
+  });
+  
+  // handle
+  router.add('/', function(ctx) {
+    ctx.c = true;
+    ctx.result(false);
+  });
+  
+  // another handle
+  router.add('/about', function(ctx) {
+    assert(ctx.a);
+    // assert(ctx.b);
+    // assert(ctx.c == undefined);
+    ctx.result(true);
+  });
+  
+  router.set('/about', function(err, result) {
+    assert(!err);
+    assert(result);
+    done();
+  });
+});

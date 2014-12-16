@@ -6,6 +6,10 @@ Connect middleware-inspired router for node and browser
 
 ### Changelog
 
+`2.3.0`:
+
+- Separate middleware and routes
+
 `2.2.0`:
 
 - Add `uri` to `context`
@@ -68,9 +72,9 @@ Connect middleware-inspired router for node and browser
     
     var nested = new Router();
     
-    nested.add(function(ctx) {
+    nested.add(function(ctx, next) {
       console.log('middleware');
-      ctx.next();
+      next();
     });
     
     nested.add('/publish', function(ctx) {

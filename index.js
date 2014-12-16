@@ -68,6 +68,7 @@ Router.prototype.get = function(uri, fn) {
         }
       });
     
+      if (uri === '/') uri = '';
       var longUri = uri + '/:__layer*';
       keys = [];
       this.routes.push({
@@ -97,12 +98,24 @@ Router.prototype.get = function(uri, fn) {
       });
     } else {
       var keys = [];
-      this.routes.push({
-        uri: uri,
-        exp: pathRegex(uri, keys),
-        keys: keys,
-        callback: fn
-      });
+      
+      if (fn.length === 2) { // middleware
+        if (uri === '/') uri = '';
+        var longUri = uri + '/:__layer*';
+        this.routes.push({
+          uri: longUri,
+          exp: pathRegex(longUri, keys),
+          keys: keys,
+          callback: fn
+        });
+      } else { // handler
+        this.routes.push({
+          uri: uri,
+          exp: pathRegex(uri, keys),
+          keys: keys,
+          callback: fn
+        });
+      }
     }
   }.bind(this));
   return this;
@@ -136,6 +149,7 @@ Router.prototype.set = function(uri, cb) {
   var q = new Queue();
   
   this.routes.forEach(function(route) {
+    
     if (!route.exp.test(hash)) return;
     
     var result = route.exp.exec(hash);
@@ -157,7 +171,7 @@ Router.prototype.set = function(uri, cb) {
       context.result = function(result) {
         next({ result: result || true });
       };
-      route.callback(context);
+      route.callback(context, next);
     });
   });
   
