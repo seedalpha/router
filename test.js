@@ -19,6 +19,12 @@ test('should trigger route', function(done) {
   var trigger = false;
   
   router.add('/abc', function(ctx) {
+    assert.deepEqual(ctx.params, {});
+    assert.deepEqual(ctx.query, {});
+    assert.equal(ctx.uri, '/abc');
+    assert.equal(typeof ctx.next, 'function');
+    assert.equal(typeof ctx.error, 'function');
+    assert.equal(typeof ctx.result, 'function');
     trigger = true;
     ctx.next();
   });

@@ -147,6 +147,7 @@ Router.prototype.set = function(uri, cb) {
     });
     
     q.add(function(next) {
+      context.uri = hash;
       context.params = params;
       context.query = query;
       context.next = next;

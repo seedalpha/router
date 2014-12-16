@@ -6,6 +6,11 @@ Connect middleware-inspired router for node and browser
 
 ### Changelog
 
+`2.2.0`:
+
+- Add `uri` to `context`
+- Tests
+
 `2.1.0`:
 
 - Maintain a single context within a single request
