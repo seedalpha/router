@@ -161,8 +161,14 @@ Router.prototype.set = function(uri, cb) {
     });
     
     q.add(function(next) {
-      context.uri = hash;
-      context.params = params;
+      context.uri = hash;      
+      if (!context.params) {
+        context.params = params;
+      } else {
+        for (var key in params) {
+          context.params[key] = params[key];
+        }
+      }
       context.query = query;
       context.next = next;
       context.error = function(err) {

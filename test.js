@@ -219,6 +219,28 @@ test('should handle deeply nested routers', function(done) {
   });
 });
 
+test('should handle deeply nested routers with params', function(done) {
+
+  var router = new Router();
+  var nested = new Router();
+  var deeply = new Router();
+  
+  router.add('/:a', nested);
+  nested.add('/:b', deeply);
+  
+  deeply.add(function(ctx) {
+    assert(ctx.params.a  === 'a');
+    assert(ctx.params.b  === 'b');
+    ctx.result();
+  });
+  
+  router.set('/a/b', function(err, result) {
+    assert(!err);
+    assert(result);
+    done();
+  });
+});
+
 test('should maintain a single context', function(done) {
 
   var router = new Router();

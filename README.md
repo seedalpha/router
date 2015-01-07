@@ -6,6 +6,10 @@ Connect middleware-inspired router for node and browser
 
 ### Changelog
 
+`2.3.1`:
+
+- Carry ctx.params to nested routers
+
 `2.3.0`:
 
 - Separate middleware and routes
