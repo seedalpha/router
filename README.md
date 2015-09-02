@@ -52,13 +52,6 @@ Connect middleware-inspired router for node and browser
 
 - Initial release
 
-
-### Prerequisites
-
-    $ npm set registry http://npm.sandbox.elasticseed.net
-    $ npm set always-auth true
-    $ npm login
-
 ### Installation
 
     $ npm install seed-router --save
