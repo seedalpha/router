@@ -8,8 +8,8 @@
  */
 
 var pathRegex     = require('path-to-regexp');
-var qs            = require('seed-qs');
-var Queue         = require('seed-queue');
+var qs            = require('@seedalpha/qs');
+var Queue         = require('@seedalpha/queue');
 
 
 /**

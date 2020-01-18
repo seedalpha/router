@@ -1,13 +1,12 @@
 {
-  "name": "seed-router",
-  "version": "2.3.1",
+  "name": "@seedalpha/router",
+  "version": "2.3.11",
   "description": "Connect middleware-inspired router for node and browser",
   "main": "index.js",
   "scripts": {
     "shorttest": "zuul --phantom -- test.js",
     "test": "zuul -- test.js",
-    "precommit": "npm run shorttest",
-    "prepublish": "npm test"
+    "precommit": "npm run shorttest"
   },
   "repository": {
     "type": "git",
@@ -30,7 +29,7 @@
   },
   "dependencies": {
     "path-to-regexp": "^1.0.1",
-    "seed-queue": "2.0.0",
-    "seed-qs": "^1.0.1"
+    "@seedalpha/queue": "^2.1.11",
+    "@seedalpha/qs": "^1.0.11"
   }
 }
